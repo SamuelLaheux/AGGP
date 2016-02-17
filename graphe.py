@@ -1,6 +1,7 @@
 import networkx as nx
 import random
 
+random.seed(0)
 
 # Creation d'un graphe aleatoire ou on donne le nombre de noeuds et la probibilite de liaison
 er=nx.erdos_renyi_graph(10,0.5)
@@ -25,20 +26,34 @@ for i in xrange(nb_nodes):
 print "fonction : ",fonction
 
 # Mutation
-def mutation(nodes,edges,p):
+def mutation(er,p):
+	nodes = er.nodes()
+	edges = er.edges()
 	mutation = False
 	for i in nodes:
 		for j in nodes:
-			if i!=j:
+			if i<j:
 				alea = random.random()
 				if alea < p:
+					mutation = False
 					for k in fonction[i]:
 						if k == j:
 							mutation = True
+							er.remove_edge(j,i)
+					if mutation == False:
+						er.add_edge(i,j)
+	return er
 
 
 
+print "NODE = ",nodes
+edges = er.edges()
+print "EDGE = ",edges
 
-mutation(nodes,edges,0.5)
+
+er2 = mutation(er,1)
+print "nodes \n",er2.nodes()
+print "edges \n",er2.edges()
+#if 1 in er[0]
 
 er.clear()
