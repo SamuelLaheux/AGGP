@@ -67,14 +67,16 @@ class Graph:
 
 g = Graph(5,1)
 g.display()
-print g.graphe.edges()
+print "Graphe G de depart = ",g.graphe.edges()
+print "\n"
 for i in range(5):
 	g.mutation()
-	print g.graphe.edges()
+	print "MUTATION de G a la %dere generation"%(i+1)
+	print "\t",g.graphe.edges()
 g.display()
 
 er2 = Graph(5,1)
-print "ER avant croisement",er2.graphe.edges()
+print "\nER avant croisement",er2.graphe.edges()
 print "G avant croisement",g.graphe.edges()
 g.crossing(er2)
 print "ER apres croisement",er2.graphe.edges()
