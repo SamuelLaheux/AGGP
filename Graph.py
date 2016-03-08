@@ -1,8 +1,9 @@
 import networkx as nx
 import random
 import matplotlib.pyplot as plt
+from math import *
 
-random.seed(0)
+#random.seed(0)
 
 class Graph:
 	def __init__(self,nb_node,link_proba):
@@ -13,7 +14,10 @@ class Graph:
 		self.edges = self.graphe.edges()
 
 	def display(self):
+		i=0
+		plt.figure(i)
 		nx.draw(self.graphe)
+		nx.draw_networkx_labels(self.graphe,pos=nx.spring_layout(self.graphe))
 		plt.show()
 
 	def genere2nb(self,a,b):
@@ -65,8 +69,32 @@ class Graph:
 		return er
 
 
+	#calculate the small world criteria
+	def small_world(self):
+		N=len(self.graphe.nodes())
+		dmoy=0.
+
+		for i in self.graphe.nodes(): #on parcourt tous les noeuds du graphe
+			d=0.
+			for j in self.graphe.nodes():  #on regarde tous les autres noeuds
+				if i!=j:
+					d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
+
+			d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
+			dmoy+=d
+
+		dobs=float(dmoy/N) #distance moy sur tous les noeuds
+
+		e=exp(-(dobs-log(N))**2)
+		return e
+
+
+
+#Grapj(nb_nodes,link_proba)
 g = Graph(5,1)
 g.display()
+print g.small_world()
+
 print "Graphe G de depart = ",g.graphe.edges()
 print "\n"
 for i in range(5):
@@ -81,3 +109,6 @@ print "G avant croisement",g.graphe.edges()
 g.crossing(er2)
 print "ER apres croisement",er2.graphe.edges()
 print "G apres croisement",g.graphe.edges()
+
+
+print g.small_world()
