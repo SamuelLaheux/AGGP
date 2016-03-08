@@ -1,8 +1,10 @@
 import networkx as nx
 import random
 import matplotlib.pyplot as plt
+import math
 
-random.seed(0)
+#random.seed(0)
+gamma = 2.2
 
 class Graph:
 	def __init__(self,nb_node,link_proba):
@@ -64,6 +66,22 @@ class Graph:
 
 		return er
 
+	def degree(self):
+		global gamma
+		N = len(self.nodes)
+		nb_neighbors = []
+		for i in self.nodes :
+			nb_neighbors.append(len(self.graphe.neighbors(i)))
+		M = max(nb_neighbors)
+		print "neighbors", nb_neighbors
+		deg = 0.0
+		for k in xrange(1,M+1):
+			Nk = nb_neighbors.count(k)
+			deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
+		return math.exp(-deg)
+
+
+
 
 g = Graph(5,1)
 g.display()
@@ -78,6 +96,10 @@ g.display()
 er2 = Graph(5,1)
 print "\nER avant croisement",er2.graphe.edges()
 print "G avant croisement",g.graphe.edges()
-g.crossing(er2)
+er2 = g.crossing(er2)
 print "ER apres croisement",er2.graphe.edges()
 print "G apres croisement",g.graphe.edges()
+
+er2.display()
+deg = er2.degree()
+print "Valeur degree : %f"%deg
