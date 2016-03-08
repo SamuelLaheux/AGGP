@@ -6,6 +6,61 @@ import math
 #random.seed(0)
 gamma = 2.2
 
+class PopGA:
+	def __init__(self,Nb_node,P_link,P_SW,P_C,P_D,Size,TM,Tc,Nb_Generation,T_Fit):
+		self.Size = Size
+		self.T_m = TM
+		self.T_c = Tc
+		self.P_SW = P_SW
+		self.P_C = P_C
+		self.P_D = P_D
+		self.Nb_Generation = Nb_Generation
+		self.T_Fit = T_Fit
+		self.pop = [Graph(Nb_node,P_link) for i in range(Size)]
+		self.Fit = [0 for i in range(Size)]
+    
+	def Run(self):
+		stop_bool= True
+		i = 0
+		while stop_bool == True:
+			#self.fitness()
+			stop_bool = self.stop(i)
+			#self.selection()
+			#self.mutation()
+			#self.crossing_over()
+			i += 1
+
+
+	def fitness(self):
+		for i in range(len(self.pop)):
+			self.Fit[i] = self.pop[i].fitness()
+		return 0
+
+
+	def mutation(self):
+	 	for i in range(len(self.pop)):
+			self.pop[i].mutation() 
+		return 0
+
+
+	def crossing_over(self):
+		for i in range(len(self.pop)):
+		 	self.pop[i].corssing_over()
+		return 0
+
+	def selection(self):
+		for i in range(len(self.pop)):
+			self.pop[i].selection()
+		return 0
+
+	def stop(self,n):
+		o = False
+		if n >= Nb_Generation:
+			o = True
+		if (sum(self.Fit)/len(self.Fit)) > self.T_Fit :
+			o = True
+		return o 
+
 class Graph:
 	def __init__(self,nb_node,link_proba):
 		self.nb_node = nb_node
@@ -83,6 +138,7 @@ class Graph:
 
 
 
+
 g = Graph(5,1)
 g.display()
 print "Graphe G de depart = ",g.graphe.edges()
@@ -103,3 +159,18 @@ print "G apres croisement",g.graphe.edges()
 er2.display()
 deg = er2.degree()
 print "Valeur degree : %f"%deg
+
+
+Nb_node = 5
+P_link = 1
+P_SW = 1
+P_C = 1
+P_D = 1
+Size = 5
+TM = 0.5
+Tc = 0.2
+Nb_Generation = 100
+T_Fit = 10000000
+pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,TM,Tc,Nb_Generation,T_Fit)
+pop1.Run()
+
