@@ -1,6 +1,7 @@
 import networkx as nx
 import random
 import matplotlib.pyplot as plt
+from math import *
 
 random.seed(0)
 
@@ -64,6 +65,33 @@ class Graph:
 
 		return er
 
+	def cliquishness(self):
+		# k is the number of neighbors for each nodes
+		# n is the number of edges between the neighbors
+		list_coeff_clustering = []
+		somme = 0.
+		for i in self.nodes:
+			n=0
+			all_possible_edges = []
+			k = len(self.graphe.neighbors(i))
+			if k==0 or k==1:
+				C=0
+			else:
+				for j in self.graphe.neighbors(i):
+					for j2 in self.graphe.neighbors(i):
+						if j<j2:
+							all_possible_edges.append((j,j2))
+				for e in self.edges:
+					for f in all_possible_edges:
+						if e == f:
+							n += 1
+							break
+				C = 2*float(n)/(float(k)*(float(k)-1))
+			list_coeff_clustering.append(C)
+			# we compare to the law : P(k) = k^-1
+			somme = somme + (C -1/k)**2
+		return exp(-somme)
+
 
 g = Graph(5,1)
 g.display()
@@ -81,3 +109,8 @@ print "G avant croisement",g.graphe.edges()
 g.crossing(er2)
 print "ER apres croisement",er2.graphe.edges()
 print "G apres croisement",g.graphe.edges()
+
+
+gr = Graph(5,0.8)
+gr.display()
+print "\nCLIQUE = ",gr.cliquishness()
