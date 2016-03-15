@@ -37,7 +37,8 @@ class PopGA:
 		while stop_bool == True:
 			self.fitness()
 			print "\nFitness of each individual = \n",self.Fit
-			#self.selection()
+			print "Moyenne : %f\n"%(sum(self.Fit)/len(self.Fit))
+			self.selection()
 			self.mutation()
 			self.crossing_over()
 			stop_bool = self.stop(i)
@@ -69,8 +70,26 @@ class PopGA:
 		return 0
 
 	def selection(self):
-		for i in range(len(self.pop)):
-			self.pop[i].selection()
+		# Creation de la fitness normee
+		Fit_norm = []
+		for i in self.Fit :
+			Fit_norm.append((i*100)/sum(self.Fit))
+		# Creation de la roulette proportionnee contenant les indices des graphes
+		roulette = []
+		for ind,j in enumerate(Fit_norm) :
+			val = int(round(j,0))
+			for k in xrange(val):
+				roulette.append(ind)
+		# Creation de liste des indices des enfants
+		New_Ind = random.sample(roulette, self.Size)
+		# Creation de la nouvelle liste d'objets graphe
+		New_Pop = list()
+		for j in New_Ind:
+			New_Pop.append(self.pop[j])
+		# Suppression de l'ancienne population de graphe et remplacement par la nouvelle
+		self.pop = []
+		self.pop = New_Pop
+
 		return 0
 
 	def stop(self,n):
@@ -85,11 +104,8 @@ class PopGA:
 
 class Graph:
 	def __init__(self,nb_node,link_proba):
-		self.nb_node = nb_node
-		self.link_proba = link_proba
-		self.graphe = nx.erdos_renyi_graph(self.nb_node,self.link_proba)
-		self.nodes = self.graphe.nodes()
-		self.edges = self.graphe.edges()
+		self.graphe = nx.erdos_renyi_graph(nb_node,link_proba)
+		# Pour recuperer les nodes et edges faire self.graphe.nodes() et self.graphe.edges()
 
 	def display(self):
 		i=0
@@ -111,13 +127,10 @@ class Graph:
 	def mutation(self):
 		nodes = self.graphe.nodes()
 		edges = self.graphe.edges()
-
 		alea_ok = False
 
 		while  alea_ok == False:
-
 			mutation = False
-
 			alea = self.genere2nb(0,nodes[-1])
 			alea1 = alea[0]
 			alea2 = alea[1]
@@ -165,41 +178,38 @@ class Graph:
 	def cliquishness(self):
 		# k is the number of neighbors for each nodes
 		# n is the number of edges between the neighbors
-		list_coeff_clustering = []
-		somme = 0.
-		for i in self.nodes:
-			n = 0
-			all_possible_edges = []
-			k = len(self.graphe.neighbors(i))
-			if k==0 or k==1:
-				C = 0
-			else:
-				for j in self.graphe.neighbors(i):
-					for j2 in self.graphe.neighbors(i):
-						if j<j2:
-							all_possible_edges.append((j,j2))
-				for e in self.edges:
-					for f in all_possible_edges:
-						if e == f:
-							n += 1
-							break
-				C = 2*float(n)/(float(k)*(float(k)-1))
-			list_coeff_clustering.append(C)
-			# we compare to the law : P(k) = k^-1
-			# if k==0, je ne sais pas vraiment ce qui est reellement bon
-			# Pour l'instant, je mets juste une condition a revoir
-			# Je pense qu'il faudrait interdire dans mutation qu'un noeud se retrouve isole (ou bien sinon il degage s'il n'est accroche a personne)
-			if k==0:
-				somme = somme + C**2
-			else:
+		if nx.is_connected(self.graphe) == True :
+			list_coeff_clustering = []
+			somme = 0.
+			for i in self.graphe.nodes():
+				n = 0
+				all_possible_edges = []
+				k = len(self.graphe.neighbors(i))
+				if k==0 or k==1:
+					C = 0
+				else:
+					for j in self.graphe.neighbors(i):
+						for j2 in self.graphe.neighbors(i):
+							if j<j2:
+								all_possible_edges.append((j,j2))
+					for e in self.graphe.edges():
+						for f in all_possible_edges:
+							if e == f:
+								n += 1
+								break
+					C = 2*float(n)/(float(k)*(float(k)-1))
+				list_coeff_clustering.append(C)
+				# we compare to the law : P(k) = k^-1
 				somme = somme + (C -1/k)**2
-		return exp(-somme)
+			return exp(-somme)
+		else :
+			return 0
 
 	def degree(self):
 		global gamma
-		N = len(self.nodes)
+		N = len(self.graphe.nodes())
 		nb_neighbors = []
-		for i in self.nodes :
+		for i in self.graphe.nodes() :
 			nb_neighbors.append(len(self.graphe.neighbors(i)))
 		M = max(nb_neighbors)
 		#print "neighbors", nb_neighbors
@@ -240,48 +250,20 @@ class Graph:
 		return a*self.cliquishness() + b*self.degree() + c*self.small_world()
 
 
-#Grapj(nb_nodes,link_proba)
-g = Graph(5,1)
-g.display()
-print g.small_world()
-
-print "Graphe G de depart = ",g.graphe.edges()
-print "\n"
-for i in range(5):
-	g.mutation()
-	print "MUTATION de G a la %dere generation"%(i+1)
-	print "\t",g.graphe.edges()
-g.display()
-
-er2 = Graph(5,1)
-print "\nER avant croisement",er2.graphe.edges()
-print "G avant croisement",g.graphe.edges()
-er2 = g.crossing(er2)
-print "ER apres croisement",er2.graphe.edges()
-print "G apres croisement",g.graphe.edges()
-
-
-gr = Graph(5,0.8)
-gr.display()
-print "\nCLIQUE = %f"%gr.cliquishness()
-
-print "\nSMALL WORLD = %f"%gr.small_world()
-
-print "\nDEGREE = %f"%gr.degree()
-
-print "\nFITNESS = %f"%gr.fitness(1.,1.,1.)
-
-
-Nb_node = 5
-P_link = 1
-P_SW = 1
-P_C = 1
-P_D = 1
-Size = 5
+# MAIN
+## Parametres
+Nb_node = 10
+P_link = 0.2
+P_SW = 1./3
+P_C = 1./3
+P_D = 1./3
+Size = 50
 Tm = 0.5
 Tc = 0.2
-Nb_Generation = 100
+Nb_Generation = 50
 T_Fit = 10000000
+
+## Creation de la population
 pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
 
 
