@@ -111,16 +111,31 @@ class Graph:
 	def mutation(self):
 		nodes = self.graphe.nodes()
 		edges = self.graphe.edges()
-		alea = self.genere2nb(0,nodes[-1])
-		alea1 = alea[0]
-		alea2 = alea[1]
-		mutation = False
-		for i in edges:
-			if i==(nodes[alea1],nodes[alea2]):
-				mutation = True
-				self.graphe.remove_edge(nodes[alea1],nodes[alea2])
-		if mutation == False:
-			self.graphe.add_edge(nodes[alea1],nodes[alea2])
+
+		alea_ok = False
+
+		while  alea_ok == False:
+
+			mutation = False
+
+			alea = self.genere2nb(0,nodes[-1])
+			alea1 = alea[0]
+			alea2 = alea[1]
+
+			for i in edges:
+				if i==(nodes[alea1],nodes[alea2]):
+					mutation = True
+
+					if len(self.graphe.neighbors(alea1))>1 and len(self.graphe.neighbors(alea2))>1:
+						self.graphe.remove_edge(nodes[alea1],nodes[alea2])
+						alea_ok=True
+
+			if mutation == False:
+				self.graphe.add_edge(nodes[alea1],nodes[alea2])
+				alea_ok=True
+
+
+
 
 	def crossing(self,er):
 		alea = random.randint(0,self.graphe.nodes()[-1])
@@ -201,19 +216,25 @@ class Graph:
 		N=len(self.graphe.nodes())
 		dmoy=0.
 
-		for i in self.graphe.nodes(): #on parcourt tous les noeuds du graphe
-			d=0.
-			for j in self.graphe.nodes():  #on regarde tous les autres noeuds
-				if i!=j:
-					d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
+		if nx.is_connected(self.graphe)==True:
 
-			d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
-			dmoy+=d
+			for i in self.graphe.nodes(): #on parcourt tous les noeuds du graphe
+				d=0.
+				for j in self.graphe.nodes():  #on regarde tous les autres noeuds
+					if i!=j:
+						d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
 
-		dobs=float(dmoy/N) #distance moy sur tous les noeuds
+				d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
+				dmoy+=d
 
-		e=exp(-(dobs-log(N))**2)
-		return e
+			dobs=float(dmoy/N) #distance moy sur tous les noeuds
+
+			e=exp(-(dobs-log(N))**2)
+			return e
+
+		else: #si graphe pas connecte
+			e=0
+			return e
 
 	def fitness(self,a,b,c):
 		return a*self.cliquishness() + b*self.degree() + c*self.small_world()
@@ -262,5 +283,8 @@ Tc = 0.2
 Nb_Generation = 100
 T_Fit = 10000000
 pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
+
+
+print "----------------- RUN -----------------------"
 pop1.Run()
 
