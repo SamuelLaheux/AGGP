@@ -53,9 +53,7 @@ class PopGA:
 
 	def mutation(self):
 	 	for i in xrange(len(self.pop)):
-	 		alea = random.random()
-	 		if alea < self.Tm:
-	 			self.pop[i].mutation() 
+	 		self.pop[i].mutation(self.Tm) 
 		return 0
 
 
@@ -124,30 +122,26 @@ class Graph:
 		else:
 			return [alea1,alea2]
 
-	def mutation(self):
+	def mutation(self, Tm):
 		nodes = self.graphe.nodes()
 		edges = self.graphe.edges()
-		alea_ok = False
 
-		while  alea_ok == False:
-			mutation = False
-			alea = self.genere2nb(0,nodes[-1])
-			alea1 = alea[0]
-			alea2 = alea[1]
-
-			for i in edges:
-				if i==(nodes[alea1],nodes[alea2]):
-					mutation = True
-
-					if len(self.graphe.neighbors(alea1))>1 and len(self.graphe.neighbors(alea2))>1:
-						self.graphe.remove_edge(nodes[alea1],nodes[alea2])
-						alea_ok=True
-
-			if mutation == False:
-				self.graphe.add_edge(nodes[alea1],nodes[alea2])
-				alea_ok=True
-
-
+		for i in nodes :
+			for j in nodes :
+				if i < j:
+					alea_ok = False
+					while  alea_ok == False:
+						alea = random.random()
+						if alea < Tm :
+							if (i,j) in edges:
+								if len(self.graphe.neighbors(i))>1 and len(self.graphe.neighbors(j))>1:
+									self.graphe.remove_edge(i,j)
+									alea_ok = True
+							else :
+								self.graphe.add_edge(i,j)
+								alea_ok = True
+						else :
+							alea_ok = True
 
 
 	def crossing(self,er):
@@ -252,7 +246,7 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 10
+Nb_node = 100
 P_link = 0.2
 P_SW = 1./3
 P_C = 1./3
@@ -261,7 +255,7 @@ Size = 50
 Tm = 0.5
 Tc = 0.2
 Nb_Generation = 50
-T_Fit = 10000000
+T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
 pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
