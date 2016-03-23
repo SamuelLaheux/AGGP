@@ -281,8 +281,6 @@ class Graph:
 				if k==0 or k==1:
 					C = 0
 				else:
-					new = set(neighbors) & set(edges)
-					print new 
 					for j in neighbors:
 						for j2 in neighbors:
 							if j<j2 and (j,j2) in edges:
