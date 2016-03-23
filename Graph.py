@@ -16,7 +16,7 @@ from math import *
 
 
 #random.seed(0)
-gamma = 2.2
+gamma = 2.3
 
 class PopGA:
 	def __init__(self,Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit):
@@ -30,19 +30,27 @@ class PopGA:
 		self.T_Fit = T_Fit
 		self.pop = [Graph(Nb_node,P_link) for i in range(Size)]
 		self.Fit = [0 for i in range(Size)]
+		self.moyFit = []
     
 	def Run(self):
 		stop_bool= True
 		i = 0
 		while stop_bool == True:
 			self.fitness()
-			print "\nFitness of each individual = \n",self.Fit
-			print "Moyenne : %f\n"%(sum(self.Fit)/len(self.Fit))
+			#print "\nFitness of each individual = \n",self.Fit
+			moy = (sum(self.Fit)/len(self.Fit))
+			self.moyFit.append(moy)
+			print "Moyenne : %f\n"%moy
 			self.selection()
 			self.mutation()
 			self.crossing_over()
 			stop_bool = self.stop(i)
 			i += 1
+		plt.figure()
+		plt.plot(xrange(i),self.moyFit)
+		plt.xlabel("nb generation")
+		plt.ylabel("moyenne fitness")
+		plt.show()
 
 
 	def fitness(self):
@@ -87,6 +95,7 @@ class PopGA:
 		# Suppression de l'ancienne population de graphe et remplacement par la nouvelle
 		self.pop = []
 		self.pop = New_Pop
+		New_Pop = []
 
 		return 0
 
@@ -225,7 +234,7 @@ class Graph:
 			for i in self.graphe.nodes(): #on parcourt tous les noeuds du graphe
 				d=0.
 				for j in self.graphe.nodes():  #on regarde tous les autres noeuds
-					if i!=j:
+					if i<j:
 						d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
 
 				d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
@@ -246,13 +255,13 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 100
-P_link = 0.2
-P_SW = 1./3
-P_C = 1./3
-P_D = 1./3
-Size = 50
-Tm = 0.5
+Nb_node = 30
+P_link = 0.8
+P_SW = 1./12
+P_C = 1./12
+P_D = 10./12
+Size = 20
+Tm = 1
 Tc = 0.2
 Nb_Generation = 50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
