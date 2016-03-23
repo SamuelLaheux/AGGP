@@ -31,6 +31,8 @@ class PopGA:
 		self.pop = [Graph(Nb_node,P_link) for i in range(Size)]
 		self.Fit = [0 for i in range(Size)]
 		self.moyFit = []
+		self.minFit = []
+		self.maxFit = []
     
 	def Run(self):
 		stop_bool= True
@@ -41,15 +43,21 @@ class PopGA:
 			moy = (sum(self.Fit)/len(self.Fit))
 			self.moyFit.append(moy)
 			print "Moyenne : %f\n"%moy
+			self.minFit.append(min(self.Fit))
+			self.maxFit.append(max(self.Fit))
 			self.selection()
 			self.mutation()
 			self.crossing_over()
 			stop_bool = self.stop(i)
 			i += 1
+
 		plt.figure()
-		plt.plot(xrange(i),self.moyFit)
+		plt.plot(xrange(i),self.moyFit,label='moy')
+		plt.plot(xrange(i),self.minFit,'g',label='min')
+		plt.plot(xrange(i),self.maxFit,'r',label='max')
+		plt.legend()
 		plt.xlabel("nb generation")
-		plt.ylabel("moyenne fitness")
+		plt.ylabel("fitness")
 		plt.show()
 
 
@@ -252,7 +260,7 @@ P_link = 0.8
 P_SW = 1./20
 P_C = 1./20
 P_D = 18./20
-Size = 100
+Size = 50
 Tm = 0.5
 Tc = 0.2
 Nb_Generation = 50
