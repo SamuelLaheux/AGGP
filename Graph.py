@@ -2,6 +2,7 @@ import networkx as nx
 import random
 import matplotlib.pyplot as plt
 from math import *
+import numpy as np
 
 # On a un probleme dans cliquishness et small_world pour les noeuds qui se retrouvent isoles apres mutation
 # puisque dans cliquishness, il faut calculer le coefficient de clustering ou il y a un k (=nb de voisin) au denominateur.
@@ -28,7 +29,7 @@ class PopGA:
 		self.P_D = P_D
 		self.Nb_Generation = Nb_Generation
 		self.T_Fit = T_Fit
-		self.pop = [Graph(Nb_node,P_link) for i in range(Size)]
+		self.pop = [Graph(Nb_node,P_link,0,1) for i in range(Size)]
 		self.Fit = [0 for i in range(Size)]
 		self.moyFit = []
 		self.minFit = []
@@ -68,8 +69,9 @@ class PopGA:
 
 
 	def mutation(self):
-	 	for i in xrange(len(self.pop)):
-	 		self.pop[i].mutation(self.Tm) 
+	 	for i in xrange(len(self.pop)): # On parcourt chaque graphe
+	 		#self.pop[i] = self.pop[i].mutation(self.Tm) # on appelle la fonction mutation
+	 		self.pop[i].mutation(self.Tm)
 		return 0
 
 
@@ -78,32 +80,31 @@ class PopGA:
 			alea = random.random()
 			if alea < self.Tc:
 				indalea = i
+				# Pour ne pas selectionne deux fois le meme graphe a crossing
 				while indalea==i:
 					indalea = random.randint(0,len(self.pop)-1)
+				#print type(self.pop[i])
 				self.pop[i].crossing(self.pop[indalea])
 		return 0
 
 	def selection(self):
-		# Creation de la fitness normee
-		Fit_norm = []
-		for i in self.Fit :
-			Fit_norm.append((i*100)/sum(self.Fit))
-		# Creation de la roulette proportionnee contenant les indices des graphes
-		roulette = []
-		for ind,j in enumerate(Fit_norm) :
-			val = int(round(j,0))
-			for k in xrange(val):
-				roulette.append(ind)
-		# Creation de liste des indices des enfants
-		New_Ind = random.sample(roulette, self.Size)
-		# Creation de la nouvelle liste d'objets graphe
-		New_Pop = list()
-		for j in New_Ind:
-			New_Pop.append(self.pop[j])
-		# Suppression de l'ancienne population de graphe et remplacement par la nouvelle
+		# Calcul la somme des fitness
+		tot = sum(self.Fit)
+		# Tirage multivarie : retourne une liste de taille de la population contenant le nombre de fois que l'indiv est selectionne
+		# en fonction de la fitness de l'indiv
+		alea = np.random.multinomial(self.Size, list(np.array(self.Fit)/tot), size=1)
+		# Creation de la nouvelle pop
+		New_Pop = []
+		# On utilise alea[0] car alea est une liste de liste
+		for ind,val in enumerate(alea[0]):
+			# Permet d'ajouter val fois le nombre d'indiv a la nouvelle pop
+			# si val = 0, extend ne rajoute pas l'indiv (car pas selectionne)
+			if val != 0:
+				for i in xrange(val):
+					G = self.pop[ind].graphe
+					New_Pop.append(Graph(0,0,G,2))
 		self.pop = []
 		self.pop = New_Pop
-		New_Pop = []
 
 		return 0
 
@@ -118,9 +119,13 @@ class PopGA:
 
 
 class Graph:
-	def __init__(self,nb_node,link_proba):
-		self.graphe = nx.erdos_renyi_graph(nb_node,link_proba)
+	def __init__(self,nb_node,link_proba, unGraph, init):
+		if init==1:
+			self.graphe = nx.erdos_renyi_graph(nb_node,link_proba)
+		else :
+			self.graphe = unGraph.copy()
 		# Pour recuperer les nodes et edges faire self.graphe.nodes() et self.graphe.edges()
+		
 
 	def display(self):
 		i=0
@@ -150,6 +155,7 @@ class Graph:
 								self.graphe.remove_edge(i,j)
 						else :
 							self.graphe.add_edge(i,j)
+
 
 
 
@@ -255,15 +261,15 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 30
+Nb_node = 10
 P_link = 0.8
 P_SW = 1./20
 P_C = 1./20
 P_D = 18./20
-Size = 50
+Size = 10
 Tm = 0.5
 Tc = 0.2
-Nb_Generation = 50
+Nb_Generation = 200
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
