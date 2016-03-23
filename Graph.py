@@ -132,25 +132,17 @@ class Graph:
 			return [alea1,alea2]
 
 	def mutation(self, Tm):
-		nodes = self.graphe.nodes()
-		edges = self.graphe.edges()
-
-		for i in nodes :
-			for j in nodes :
+		for i in self.graphe.nodes() :
+			for j in self.graphe.nodes() :
 				if i < j:
-					alea_ok = False
-					while  alea_ok == False:
-						alea = random.random()
-						if alea < Tm :
-							if (i,j) in edges:
-								if len(self.graphe.neighbors(i))>1 and len(self.graphe.neighbors(j))>1:
-									self.graphe.remove_edge(i,j)
-									alea_ok = True
-							else :
-								self.graphe.add_edge(i,j)
-								alea_ok = True
+					alea = random.random()
+					if alea < Tm :
+						if (i,j) in self.graphe.edges():
+							if len(self.graphe.neighbors(i))>1 and len(self.graphe.neighbors(j))>1:
+								self.graphe.remove_edge(i,j)
 						else :
-							alea_ok = True
+							self.graphe.add_edge(i,j)
+
 
 
 	def crossing(self,er):
@@ -257,11 +249,11 @@ class Graph:
 ## Parametres
 Nb_node = 30
 P_link = 0.8
-P_SW = 1./12
-P_C = 1./12
-P_D = 10./12
-Size = 20
-Tm = 1
+P_SW = 1./20
+P_C = 1./20
+P_D = 18./20
+Size = 100
+Tm = 0.5
 Tc = 0.2
 Nb_Generation = 50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
