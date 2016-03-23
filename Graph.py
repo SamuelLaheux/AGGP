@@ -150,8 +150,8 @@ class Graph:
 	def mutation(self, Tm):
 
 		for i in self.graphe.nodes() :
-			for j in self.graphe.nodes() :
 
+			for j in self.graphe.nodes() :
 				if i < j:
 					alea = random.random()
 					if alea < Tm :
@@ -272,12 +272,12 @@ class Graph:
 			somme = 0.
 			edges = self.graphe.edges()
 			for i in self.graphe.nodes():
-
-				nb_neighbors.append(len(self.graphe.neighbors(i)))
 				neighbors = self.graphe.neighbors(i)
 
+				k = len(neighbors)
+
+				nb_neighbors.append(k)
 				n = 0
-				k = len(self.graphe.neighbors(i))
 				if k==0 or k==1:
 					C = 0
 				else:
