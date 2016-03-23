@@ -50,6 +50,7 @@ class PopGA:
 			self.mutation()
 			self.crossing_over()
 			stop_bool = self.stop(i)
+
 			i += 1
 
 		plt.figure()
@@ -64,7 +65,7 @@ class PopGA:
 
 	def fitness(self):
 		for i in range(len(self.pop)):
-			self.Fit[i] = self.pop[i].fitness(self.P_C,self.P_D,self.P_SW)
+			self.Fit[i] = self.pop[i].fit(self.P_C,self.P_D,self.P_SW)
 		return 0
 
 
@@ -76,6 +77,7 @@ class PopGA:
 
 
 	def crossing_over(self):
+
 		for i in xrange(len(self.pop)):
 			alea = random.random()
 			if alea < self.Tc:
@@ -85,6 +87,7 @@ class PopGA:
 					indalea = random.randint(0,len(self.pop)-1)
 				#print type(self.pop[i])
 				self.pop[i].crossing(self.pop[indalea])
+
 		return 0
 
 	def selection(self):
@@ -145,8 +148,10 @@ class Graph:
 			return [alea1,alea2]
 
 	def mutation(self, Tm):
+
 		for i in self.graphe.nodes() :
 			for j in self.graphe.nodes() :
+
 				if i < j:
 					alea = random.random()
 					if alea < Tm :
@@ -255,8 +260,73 @@ class Graph:
 			e=0
 			return e
 
-	def fitness(self,a,b,c):
-		return a*self.cliquishness() + b*self.degree() + c*self.small_world()
+	def fit(self,a,b,c):
+		global gamma  #degree
+		N = len(self.graphe.nodes())
+		nb_neighbors = []
+		dmoy=0.
+
+
+		if nx.is_connected(self.graphe) == True :
+			list_coeff_clustering = []
+			somme = 0.
+			edges = self.graphe.edges()
+			for i in self.graphe.nodes():
+
+				nb_neighbors.append(len(self.graphe.neighbors(i)))
+				neighbors = self.graphe.neighbors(i)
+
+				n = 0
+				k = len(self.graphe.neighbors(i))
+				if k==0 or k==1:
+					C = 0
+				else:
+					new = set(neighbors) & set(edges)
+					print new 
+					for j in neighbors:
+						for j2 in neighbors:
+							if j<j2 and (j,j2) in edges:
+								n += 1
+	
+					C = 2*float(n)/(float(k)*(float(k)-1))
+				list_coeff_clustering.append(C)
+				# we compare to the law : P(k) = k^-1
+				somme = somme + (C -1/k)**2
+
+
+				
+				d=0.
+				for j in self.graphe.nodes():  #on regarde tous les autres noeuds
+					if i!=j:
+						d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
+
+				d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
+				dmoy+=d
+			
+			dobs=float(dmoy/N) #distance moy sur tous les noeuds
+
+			e=exp(-(dobs-log(N))**2)
+
+
+			M = max(nb_neighbors)
+			#print "neighbors", nb_neighbors
+			deg = 0.0
+			for k in xrange(1,M+1):
+				Nk = nb_neighbors.count(k)
+				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
+				
+			return (a*exp(-somme) + b*exp(-deg) + c*e)
+		else :
+			for i in self.graphe.nodes() :
+				nb_neighbors.append(len(self.graphe.neighbors(i)))
+			M = max(nb_neighbors)
+			#print "neighbors", nb_neighbors
+			deg = 0.0
+			for k in xrange(1,M+1):
+				Nk = nb_neighbors.count(k)
+				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
+			return b*exp(-deg)
+
 
 
 # MAIN
@@ -273,6 +343,7 @@ Nb_Generation = 200
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
+
 pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
 
 
