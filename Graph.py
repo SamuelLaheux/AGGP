@@ -17,7 +17,7 @@ import numpy as np
 
 
 #random.seed(0)
-gamma = 2.3
+gamma = 2.2
 
 class PopGA:
 	def __init__(self,Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit):
@@ -60,6 +60,8 @@ class PopGA:
 		plt.legend()
 		plt.xlabel("nb generation")
 		plt.ylabel("fitness")
+		plt.savefig("testtt.png")
+		plt.title("100 nodes, 80 individus")
 		plt.show()
 
 
@@ -301,17 +303,20 @@ class Graph:
 				d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
 				dmoy+=d
 			
-			dobs=float(dmoy/N) #distance moy sur tous les noeuds
+			#Clique norme N
+			somme=float(somme/N)
 
+			# SW
+			dobs=float(dmoy/N) #distance moy sur tous les noeuds
 			e=exp(-(dobs-log(N))**2)
 
-
+			# Degre
 			M = max(nb_neighbors)
 			#print "neighbors", nb_neighbors
 			deg = 0.0
 			for k in xrange(1,M+1):
 				Nk = nb_neighbors.count(k)
-				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
+				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2  # Est ce qu'on diviserait pas par M--
 				
 			return (a*exp(-somme) + b*exp(-deg) + c*e)
 		else :
@@ -329,15 +334,15 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 10
-P_link = 0.8
-P_SW = 1./20
-P_C = 1./20
-P_D = 18./20
-Size = 10
-Tm = 0.5
-Tc = 0.2
-Nb_Generation = 200
+Nb_node = 100
+P_link = 0.2 #Bien
+P_SW = 50./100
+P_C = 37./100 #Parisot
+P_D = 13./100
+Size = 80
+Tm = 1/Size #Parisot
+Tc = 0.01
+Nb_Generation = 50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
@@ -347,4 +352,3 @@ pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
 
 print "----------------- RUN -----------------------"
 pop1.Run()
-
