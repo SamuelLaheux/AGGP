@@ -43,7 +43,7 @@ class PopGA:
 			#print "\nFitness of each individual = \n",self.Fit
 			moy = (sum(self.Fit)/len(self.Fit))
 			self.moyFit.append(moy)
-			print "Moyenne : %f\n"%moy
+			#print "Moyenne : %f\n"%moy
 			self.minFit.append(min(self.Fit))
 			self.maxFit.append(max(self.Fit))
 			self.selection()
@@ -53,6 +53,11 @@ class PopGA:
 
 			i += 1
 
+		self.export(i)
+
+
+
+	def export(self,i):
 		plt.figure()
 		plt.plot(xrange(i),self.moyFit,label='moy')
 		plt.plot(xrange(i),self.minFit,'g',label='min')
@@ -60,9 +65,14 @@ class PopGA:
 		plt.legend()
 		plt.xlabel("nb generation")
 		plt.ylabel("fitness")
-		plt.savefig("testtt.png")
+		plt.savefig("test_psw=%f_pd=%f_tc=%f.png"%(self.P_SW,self.P_D,self.Tc))
 		plt.title("100 nodes, 80 individus")
-		plt.show()
+		#plt.show()
+
+
+
+
+
 
 
 	def fitness(self):
@@ -334,7 +344,7 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 100
+Nb_node = 60 #100 avant
 P_link = 0.2 #Bien
 P_SW = 50./100
 P_C = 37./100 #Parisot
@@ -342,13 +352,27 @@ P_D = 13./100
 Size = 80
 Tm = 1/Size #Parisot
 Tc = 0.01
-Nb_Generation = 50
+Nb_Generation = 40 #50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
 
-pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
+#pop1 = PopGA(Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit)
 
 
 print "----------------- RUN -----------------------"
-pop1.Run()
+#pop1.Run()
+
+#Test de plusieurs parametres
+
+psw=[0.5,0.6]
+tc=[0.001,0.005,0.01,0.02,0.03,0.05,0.07,0.08,0.09,0.1]
+
+k=1
+for i in psw:
+	for j in tc:
+		print "k=",k
+		pd=1-P_C-i
+		pop1 = PopGA(Nb_node,P_link,i,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
+		pop1.Run()
+		k=k+1
