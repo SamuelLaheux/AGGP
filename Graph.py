@@ -38,6 +38,7 @@ class PopGA:
 	def Run(self):
 		stop_bool= True
 		i = 0
+		self.pop[0].display("Tree_Initial_psw=%f_pd=%f_tc=%f.png"%(self.P_SW,self.P_D,self.Tc))
 		while stop_bool == True:
 			self.fitness()
 			#print "\nFitness of each individual = \n",self.Fit
@@ -52,7 +53,10 @@ class PopGA:
 			stop_bool = self.stop(i)
 
 			i += 1
-
+		# Recuperer l'indice du meilleur graphe
+		Indice_maxFit = self.Fit.index(self.maxFit[-1])
+		# Display du meilleur graphe
+		self.pop[Indice_maxFit].display("Tree_Final_psw=%f_pd=%f_tc=%f.png"%(self.P_SW,self.P_D,self.Tc))
 		self.export(i)
 
 
@@ -142,12 +146,12 @@ class Graph:
 		# Pour recuperer les nodes et edges faire self.graphe.nodes() et self.graphe.edges()
 		
 
-	def display(self):
-		i=0
-		plt.figure(i)
+	def display(self,name):
+		plt.figure()
 		nx.draw(self.graphe)
-		nx.draw_networkx_labels(self.graphe,pos=nx.spring_layout(self.graphe))
-		plt.show()
+		#nx.draw_networkx_labels(self.graphe,pos=nx.spring_layout(self.graphe))
+		plt.savefig(name)
+		#plt.show()
 
 	def genere2nb(self,a,b):
 		alea1 = random.randint(a,b)
@@ -344,15 +348,15 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 60 #100 avant
+Nb_node = 20 #100 avant
 P_link = 0.2 #Bien
 P_SW = 50./100
 P_C = 37./100 #Parisot
 P_D = 13./100
-Size = 80
+Size = 10
 Tm = 1/Size #Parisot
 Tc = 0.01
-Nb_Generation = 40 #50
+Nb_Generation = 30 #50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
@@ -365,14 +369,24 @@ print "----------------- RUN -----------------------"
 
 #Test de plusieurs parametres
 
-psw=[0.5,0.6]
-tc=[0.001,0.005,0.01,0.02,0.03,0.05,0.07,0.08,0.09,0.1]
+tc1=[0.07,0.08,0.09]
+tc2 = [0.03,0.05,0.07,0.08]
 
 k=1
-for i in psw:
-	for j in tc:
-		print "k=",k
-		pd=1-P_C-i
-		pop1 = PopGA(Nb_node,P_link,i,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
-		pop1.Run()
-		k=k+1
+psw = 0.3
+for j in tc1:
+	print "k=",k
+	pd=1-P_C-psw
+	pop1 = PopGA(Nb_node,P_link,psw,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
+	pop1.Run()
+	k=k+1
+
+
+k=1
+psw = 0.4
+for j in tc2:
+	print "k=",k
+	pd=1-P_C-psw
+	pop1 = PopGA(Nb_node,P_link,psw,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
+	pop1.Run()
+	k=k+1
