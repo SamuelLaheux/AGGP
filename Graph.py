@@ -29,7 +29,7 @@ class PopGA:
 		self.P_D = P_D
 		self.Nb_Generation = Nb_Generation
 		self.T_Fit = T_Fit
-		self.pop = [Graph(Nb_node,P_link,0,1) for i in range(Size)]
+		self.pop = [Graph(Nb_node,random.choice(P_link),0,1) for i in range(Size)]
 		self.Fit = [0 for i in range(Size)]
 		self.moyFit = []
 		self.minFit = []
@@ -348,15 +348,15 @@ class Graph:
 
 # MAIN
 ## Parametres
-Nb_node = 20 #100 avant
-P_link = 0.2 #Bien
+Nb_node = 100 #100 avant
+P_link = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] #Bien
 P_SW = 50./100
 P_C = 37./100 #Parisot
 P_D = 13./100
-Size = 10
+Size = 100
 Tm = 1/Size #Parisot
 Tc = 0.01
-Nb_Generation = 30 #50
+Nb_Generation = 100 #50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
