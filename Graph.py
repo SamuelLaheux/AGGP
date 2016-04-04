@@ -18,6 +18,7 @@ import numpy as np
 
 #random.seed(0)
 gamma = 2.2
+coeff_exp = 0.5
 
 class PopGA:
 	def __init__(self,Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit):
@@ -72,10 +73,6 @@ class PopGA:
 		plt.savefig("test_psw=%f_pd=%f_tc=%f.png"%(self.P_SW,self.P_D,self.Tc))
 		plt.title("100 nodes, 80 individus")
 		#plt.show()
-
-
-
-
 
 
 
@@ -149,9 +146,7 @@ class Graph:
 	def display(self,name):
 		plt.figure()
 		nx.draw(self.graphe)
-		#nx.draw_networkx_labels(self.graphe,pos=nx.spring_layout(self.graphe))
 		plt.savefig(name)
-		#plt.show()
 
 	def genere2nb(self,a,b):
 		alea1 = random.randint(a,b)
@@ -278,6 +273,7 @@ class Graph:
 
 	def fit(self,a,b,c):
 		global gamma  #degree
+		global coeff_exp # Attenuation de la pente de l'exponentielle (faibles valeurs)
 		N = len(self.graphe.nodes())
 		nb_neighbors = []
 		dmoy=0.
@@ -322,7 +318,7 @@ class Graph:
 
 			# SW
 			dobs=float(dmoy/N) #distance moy sur tous les noeuds
-			e=exp(-(dobs-log(N))**2)
+			e=exp(-coeff_exp*((dobs-log(N))**2))
 
 			# Degre
 			M = max(nb_neighbors)
@@ -332,7 +328,7 @@ class Graph:
 				Nk = nb_neighbors.count(k)
 				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2  # Est ce qu'on diviserait pas par M--
 				
-			return (a*exp(-somme) + b*exp(-deg) + c*e)
+			return (a*exp(-coeff_exp*somme) + b*exp(-coeff_exp*deg) + c*e)
 		else :
 			for i in self.graphe.nodes() :
 				nb_neighbors.append(len(self.graphe.neighbors(i)))
@@ -369,7 +365,7 @@ print "----------------- RUN -----------------------"
 
 #Test de plusieurs parametres
 
-tc1=[0.07,0.08,0.09]
+tc1=[0.07]
 tc2 = [0.03,0.05,0.07,0.08]
 
 k=1
