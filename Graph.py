@@ -18,7 +18,7 @@ import numpy as np
 
 #random.seed(0)
 gamma = 2.2
-coeff_exp = 0.5
+
 
 class PopGA:
 	def __init__(self,Nb_node,P_link,P_SW,P_C,P_D,Size,Tm,Tc,Nb_Generation,T_Fit):
@@ -70,15 +70,23 @@ class PopGA:
 		plt.legend()
 		plt.xlabel("nb generation")
 		plt.ylabel("fitness")
-		plt.savefig("test_psw=%f_pd=%f_tc=%f.png"%(self.P_SW,self.P_D,self.Tc))
+		plt.savefig("test_psw=%f_pd=%f_tc=%f_TM10.png"%(self.P_SW,self.P_D,self.Tc))
 		plt.title("100 nodes, 80 individus")
 		#plt.show()
 
 
 
 	def fitness(self):
+		# degL = []
+		# SWL = []
+		# cliqL = []
 		for i in range(len(self.pop)):
 			self.Fit[i] = self.pop[i].fit(self.P_C,self.P_D,self.P_SW)
+			# val = self.pop[i].fit(self.P_C,self.P_D,self.P_SW)
+			# cliqL.append(val[0])
+			# degL.append(val[1])
+			# SWL.append(val[2])
+		print "Moy Clique : %g, Moy SW : %g, Moy deg : %g"%(sum(cliqL)/len(cliqL), sum(SWL)/len(SWL), sum(degL)/len(degL))
 		return 0
 
 
@@ -273,7 +281,7 @@ class Graph:
 
 	def fit(self,a,b,c):
 		global gamma  #degree
-		global coeff_exp # Attenuation de la pente de l'exponentielle (faibles valeurs)
+		#global coeff_exp # Attenuation de la pente de l'exponentielle (faibles valeurs)
 		N = len(self.graphe.nodes())
 		nb_neighbors = []
 		dmoy=0.
@@ -318,7 +326,7 @@ class Graph:
 
 			# SW
 			dobs=float(dmoy/N) #distance moy sur tous les noeuds
-			e=exp(-coeff_exp*((dobs-log(N))**2))
+			e=exp(-((dobs-log(N))**2)/10)
 
 			# Degre
 			M = max(nb_neighbors)
@@ -327,8 +335,10 @@ class Graph:
 			for k in xrange(1,M+1):
 				Nk = nb_neighbors.count(k)
 				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2  # Est ce qu'on diviserait pas par M--
-				
-			return (a*exp(-coeff_exp*somme) + b*exp(-coeff_exp*deg) + c*e)
+			
+			#print "Clique : %g, SW : %g, deg : %g\n"%(somme*1.5, ((dobs-log(N))**2)/10, deg*0.9)
+			return (a*exp(-somme*2.5) + b*exp(-deg*0.9) + c*e)
+			#return (somme*2.5, deg*0.9, ((dobs-log(N))**2)/10)
 		else :
 			for i in self.graphe.nodes() :
 				nb_neighbors.append(len(self.graphe.neighbors(i)))
@@ -338,7 +348,8 @@ class Graph:
 			for k in xrange(1,M+1):
 				Nk = nb_neighbors.count(k)
 				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
-			return b*exp(-deg)
+			#return b*exp(-deg)
+			return (0,deg*0.9,0)
 
 
 
@@ -347,10 +358,10 @@ class Graph:
 Nb_node = 100 #100 avant
 P_link = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] #Bien
 P_SW = 50./100
-P_C = 37./100 #Parisot
-P_D = 13./100
+P_C = 25./100 #Parisot
+P_D = 25./100
 Size = 100
-Tm = 1/Size #Parisot
+Tm = 10/Size #Parisot
 Tc = 0.01
 Nb_Generation = 100 #50
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
@@ -365,11 +376,11 @@ print "----------------- RUN -----------------------"
 
 #Test de plusieurs parametres
 
-tc1=[0.07]
-tc2 = [0.03,0.05,0.07,0.08]
+tc1=[0.05, 0.15]
+
 
 k=1
-psw = 0.3
+psw = 0.1
 for j in tc1:
 	print "k=",k
 	pd=1-P_C-psw
@@ -379,8 +390,8 @@ for j in tc1:
 
 
 k=1
-psw = 0.4
-for j in tc2:
+psw = 0.01
+for j in tc1:
 	print "k=",k
 	pd=1-P_C-psw
 	pop1 = PopGA(Nb_node,P_link,psw,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
