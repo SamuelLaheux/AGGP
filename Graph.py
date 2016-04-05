@@ -136,7 +136,9 @@ class PopGA:
 		self.moyEnVueD=0
 
 		for i in range(len(self.pop)):
+			print i 
 			self.Fit[i] = self.pop[i].fit(self.P_C,self.P_D,self.P_SW)
+			print i 
 			self.moyEnVueSw+=self.pop[i].sw
 			self.moyEnVueC+=self.pop[i].clique
 			self.moyEnVueD+=self.pop[i].degre
@@ -155,7 +157,7 @@ class PopGA:
 		self.moyEnVueSw/=self.Size
 		self.moyEnVueC/=self.Size
 		self.moyEnVueD/=self.Size
-
+		print i 
 		return best_ind
 
 
@@ -239,19 +241,7 @@ class Graph:
 		else:
 			return [alea1,alea2]
 
-	def mutation(self, Tm):
-
-		for i in self.graphe.nodes() :
-
-			for j in self.graphe.nodes() :
-				if i < j:
-					alea = random.random()
-					if alea < Tm :
-						if (i,j) in self.graphe.edges():
-							if len(self.graphe.neighbors(i))>1 and len(self.graphe.neighbors(j))>1:
-								self.graphe.remove_edge(i,j)
-						else :
-							self.graphe.add_edge(i,j)
+	
 
 
 
@@ -281,76 +271,19 @@ class Graph:
 		return er
 
 
-	def cliquishness(self):
-		# k is the number of neighbors for each nodes
-		# n is the number of edges between the neighbors
-		if nx.is_connected(self.graphe) == True :
-			list_coeff_clustering = []
-			somme = 0.
-			for i in self.graphe.nodes():
-				n = 0
-				all_possible_edges = []
-				k = len(self.graphe.neighbors(i))
-				if k==0 or k==1:
-					C = 0
-				else:
-					for j in self.graphe.neighbors(i):
-						for j2 in self.graphe.neighbors(i):
-							if j<j2:
-								all_possible_edges.append((j,j2))
-					for e in self.graphe.edges():
-						for f in all_possible_edges:
-							if e == f:
-								n += 1
-								break
-					C = 2*float(n)/(float(k)*(float(k)-1))
-				list_coeff_clustering.append(C)
-				# we compare to the law : P(k) = k^-1
-				somme = somme + (C -1/k)**2
-			return exp(-somme)
-		else :
-			return 0
 
-	def degree(self):
-		global gamma
-		N = len(self.graphe.nodes())
-		nb_neighbors = []
+	def mutation(self, Tm):
+
 		for i in self.graphe.nodes() :
-			nb_neighbors.append(len(self.graphe.neighbors(i)))
-		M = max(nb_neighbors)
-		#print "neighbors", nb_neighbors
-		deg = 0.0
-		for k in xrange(1,M+1):
-			Nk = nb_neighbors.count(k)
-			deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
-		return exp(-deg)
+			for j in self.graphe.nodes() :
+				alea = random.random()
+				if i < j and alea < Tm:
+					if (i,j) in self.graphe.edges():
+						if len(self.graphe.neighbors(i))>1 and len(self.graphe.neighbors(j))>1:
+							self.graphe.remove_edge(i,j)
+					else :
+						self.graphe.add_edge(i,j)
 
-
-
-	#calculate the small world criteria
-	def small_world(self):
-		N=len(self.graphe.nodes())
-		dmoy=0.
-
-		if nx.is_connected(self.graphe)==True:
-
-			for i in self.graphe.nodes(): #on parcourt tous les noeuds du graphe
-				d=0.
-				for j in self.graphe.nodes():  #on regarde tous les autres noeuds
-					if i<j:
-						d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
-
-				d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
-				dmoy+=d
-
-			dobs=float(dmoy/N) #distance moy sur tous les noeuds
-
-			e=exp(-(dobs-log(N))**2)
-			return e
-
-		else: #si graphe pas connecte
-			e=0
-			return e
 
 	def fit(self,a,b,c):
 		global gamma  #degree
@@ -359,7 +292,8 @@ class Graph:
 		nb_neighbors = []
 		dmoy=0.
 
-
+		# k is the number of neighbors for each nodes
+		# n is the number of edges between the neighbors
 		if nx.is_connected(self.graphe) == True :
 			list_coeff_clustering = []
 			somme = 0.
@@ -373,14 +307,17 @@ class Graph:
 
 				nb_neighbors.append(k)
 				n = 0
-				if k==0 or k==1:
+				if k <= 1:
 					C = 0
 				else:
 					for j in neighbors:
 						for j2 in neighbors:
 							if j<j2 and (j,j2) in edges:
 								n += 1
-	
+				
+
+				# k is the number of neighbors for each nodes
+				# n is the number of edges between the neighbors
 					C = 2*float(n)/(float(k)*(float(k)-1))
 				list_coeff_clustering.append(C)
 				# we compare to the law : P(k) = k^-1
@@ -391,7 +328,7 @@ class Graph:
 				d=0.
 				for j in self.graphe.nodes():  #on regarde tous les autres noeuds
 					if i!=j:
-						d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
+						d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds pour le calcul de small world
 
 				d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
 				dmoy+=d
@@ -401,52 +338,59 @@ class Graph:
 			self.clique=somme*2.5
 
 			# SW
-			dobs=float(dmoy/N) #distance moy sur tous les noeuds
-			coeff=(dobs-log(N))**2
+			dobs= float(dmoy/N) #distance moy sur tous les noeuds
+			coeff= (dobs-log(N))**2
 			e=exp(-coeff/10)
 			self.sw=coeff/10
 
 			# Degre
+
 			M = max(nb_neighbors)
-			#print "neighbors", nb_neighbors
 			deg = 0.0
+
 			for k in xrange(1,M+1):
 				Nk = nb_neighbors.count(k)
+
 				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2  # Est ce qu'on diviserait pas par M--
 			
 			self.degre=deg*0.9
 			#print "Clique : %g, SW : %g, deg : %g\n"%(somme*1.5, ((dobs-log(N))**2)/10, deg*0.9)
 			return a*exp(-somme*2.5) + b*exp(-deg*0.9) + c*e
 			#return (somme*2.5, deg*0.9, ((dobs-log(N))**2)/10)
-		else :
-			for i in self.graphe.nodes() :
-				nb_neighbors.append(len(self.graphe.neighbors(i)))
-			M = max(nb_neighbors)
-			#print "neighbors", nb_neighbors
-			deg = 0.0
-			for k in xrange(1,M+1):
-				Nk = nb_neighbors.count(k)
-				deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
-			self.sw=0
-			self.clique=0
-			self.degre=deg*0.9
 
-			return b*exp(-deg*0.9)
+		else :
+			# graphe pas connexe donc on ne peut calculer que
+			
+			# for i in self.graphe.nodes() :
+			# 	nb_neighbors.append(len(self.graphe.neighbors(i)))
+			# M = max(nb_neighbors)
+			# deg = 0.0
+			# for k in xrange(1,M+1):
+			# 	Nk = nb_neighbors.count(k)
+			# 	deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
+			# self.sw=0
+			# self.clique=0
+			# self.degre=deg*0.9
+
+			return 0.001*0.9
 			#return (0,deg*0.9,0)
 
 
 
 # MAIN
 ## Parametres
+
 Nb_node = 100 #100 avant
+
 P_link = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] #Bien 
 P_SW = 50./100 
 P_C = 25./100 #Parisot
 P_D = 25./100
-Size = 30
-Tm = 1#Parisot
+Size = 50
+Tm = 1/Size#Parisot
 Tc = 0.01
-Nb_Generation = 20 #50
+Nb_Generation = 50 #50
+
 T_Fit = 1 # valeur seuil de la fitness (critere d'arret)
 
 ## Creation de la population
@@ -459,8 +403,18 @@ pop1.Run()
 
 #Test de plusieurs parametres
 
-tc1=[0.05, 0.15]
 
+tc1=[0.05, 0.15]
+tc2 = [0.03,0.05,0.07,0.08]
+
+k=1
+psw = 0.3
+for j in tc1:
+	print "k=",k
+	pd=1-P_C-psw
+	pop1 = PopGA(Nb_node,P_link,psw,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
+	pop1.Run()
+	k=k+1
 
 # k=1
 # psw = 0.1
@@ -480,3 +434,93 @@ tc1=[0.05, 0.15]
 # 	pop1 = PopGA(Nb_node,P_link,psw,P_C,pd,Size,Tm,j,Nb_Generation,T_Fit)
 # 	pop1.Run()
 # 	k=k+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######fonction de fitness
+
+	# def cliquishness(self):
+	# 	# k is the number of neighbors for each nodes
+	# 	# n is the number of edges between the neighbors
+	# 	if nx.is_connected(self.graphe) == True :
+	# 		list_coeff_clustering = []
+	# 		somme = 0.
+	# 		for i in self.graphe.nodes():
+	# 			n = 0
+	# 			all_possible_edges = []
+	# 			k = len(self.graphe.neighbors(i))
+	# 			if k==0 or k==1:
+	# 				C = 0
+	# 			else:
+	# 				for j in self.graphe.neighbors(i):
+	# 					for j2 in self.graphe.neighbors(i):
+	# 						if j<j2:
+	# 							all_possible_edges.append((j,j2))
+	# 				for e in self.graphe.edges():
+	# 					for f in all_possible_edges:
+	# 						if e == f:
+	# 							n += 1
+	# 							break
+	# 				C = 2*float(n)/(float(k)*(float(k)-1))
+	# 			list_coeff_clustering.append(C)
+	# 			# we compare to the law : P(k) = k^-1
+	# 			somme = somme + (C -1/k)**2
+	# 		return exp(-somme)
+	# 	else :
+	# 		return 0
+
+	# def degree(self):
+	# 	global gamma
+	# 	N = len(self.graphe.nodes())
+	# 	nb_neighbors = []
+	# 	for i in self.graphe.nodes() :
+	# 		nb_neighbors.append(len(self.graphe.neighbors(i)))
+	# 	M = max(nb_neighbors)
+	# 	#print "neighbors", nb_neighbors
+	# 	deg = 0.0
+	# 	for k in xrange(1,M+1):
+	# 		Nk = nb_neighbors.count(k)
+	# 		deg = deg + ( (float(Nk)/N) - (k**(-gamma)) )**2
+	# 	return exp(-deg)
+
+
+
+	# #calculate the small world criteria
+	# def small_world(self):
+	# 	N=len(self.graphe.nodes())
+	# 	dmoy=0.
+
+	# 	if nx.is_connected(self.graphe)==True:
+
+	# 		for i in self.graphe.nodes(): #on parcourt tous les noeuds du graphe
+	# 			d=0.
+	# 			for j in self.graphe.nodes():  #on regarde tous les autres noeuds
+	# 				if i<j:
+	# 					d+=len(nx.shortest_path(self.graphe,source=i,target=j))-1 #distance entre ces 2 noeuds
+
+	# 			d=float(d/(N-1)) #distance observee entre le noeud i et N-1 autres noeuds
+	# 			dmoy+=d
+
+	# 		dobs=float(dmoy/N) #distance moy sur tous les noeuds
+
+	# 		e=exp(-(dobs-log(N))**2)
+	# 		return e
+
+	# 	else: #si graphe pas connecte
+	# 		e=0
+	# 		return e
+
+
